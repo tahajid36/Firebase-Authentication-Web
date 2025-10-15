@@ -1,4 +1,4 @@
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import React, { useState } from "react";
 import { Link } from "react-router";
 import { auth } from "../../firebase.config";
@@ -18,17 +18,29 @@ const Register = () => {
   }
   const handleRegister = (e) => {
     e.preventDefault();
+    // to see if the checkbox is checked or not we used checked in last 
+    const terms = e.target.terms.checked
+    console.log(terms)
     const email = e.target.email.value;
     const Password = e.target.password.value;
     const User = e.target.username.value;
-    const PassPattern = /^(?=.*[a-z])(?=.*[A-Z]).+$/;
 
+
+    const PassPattern = /^(?=.*[a-z])(?=.*[A-Z]).+$/;
     if (!PassPattern.test(Password)) {
       setError("Must have atleast 1 upper and Lower case");
       return;
     }
+
+    // terms condition 
+    if(!terms){
+      setError("Please accept terms and conditions to continue")
+      return
+    }
+
     //error message reset
     setError("");
+
     //success or error status set
     setSuccess(false);
 
@@ -37,6 +49,12 @@ const Register = () => {
         console.log(result.user);
         setSuccess(true);
         e.target.reset();
+        
+        //send verification email to registered email
+        sendEmailVerification(result.user)
+        .then(()=>{
+          alert('Email verification link sent to email')
+        })
       })
       .catch((error) => {
         console.log(error.message);
@@ -102,14 +120,15 @@ const Register = () => {
                 </div>
                 <div>
                   <label className="label">
-                  <input type="checkbox" defaultChecked className="checkbox checkbox-sm" />
+                  <input 
+                  type="checkbox" defaultChecked
+                  name="terms"
+                   className="checkbox checkbox-sm" />
                   I accept to the terms and conditions
 
                   </label>
                 </div>
-                <div>
-                  <a className="link link-hover">Forgot password?</a>
-                </div>
+                
                 <button className="btn btn-neutral mt-4">Register</button>
               </fieldset>
             </form>
